@@ -203,13 +203,25 @@ function getPal(seg){
 
 window.onload=()=>{
   document.getElementById('qdate').value=new Date().toISOString().split('T')[0];
-  document.getElementById('qno').textContent='Q-'+(Math.floor(Math.random()*900)+100);
+  document.getElementById('qno').textContent='Q-...';
   buildCompanyBlocks([
     {name:'MY DREAM FOODS LIMITED',segments:[]},
     {name:'MAYANK FOODS LIMITED',segments:[]}
   ]);
   loadProducts();
+  fetchNextQuoteNo();
 };
+
+function fetchNextQuoteNo(){
+  const fd=new FormData();fd.append('action','getNextQuoteNo');
+  fetch(LOG_GAS,{method:'POST',body:fd})
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.status==='OK') document.getElementById('qno').textContent=d.quoteNo;
+      else document.getElementById('qno').textContent='Q-101';
+    })
+    .catch(()=>document.getElementById('qno').textContent='Q-101');
+}
 
 function loadProducts(){
   const st=document.getElementById('status');
@@ -498,13 +510,14 @@ function saveQuote(){
 function newQuote(){
   ['party','city','contact','updated-by','lookup-qno'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('lookup-status').textContent='';
-  document.getElementById('qno').textContent='Q-'+(Math.floor(Math.random()*900)+100);
+  document.getElementById('qno').textContent='Q-...';
   document.getElementById('qdate').value=new Date().toISOString().split('T')[0];
   const gdrop=document.getElementById('__pd_global');if(gdrop)gdrop.classList.remove('open');
   ['btn-print','btn-excel','btn-pdf'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   const btn=document.getElementById('btn-save');
   btn.textContent='💾 Save';btn.style.background='';btn.disabled=false;btn.onclick=saveQuote;
   buildCompanyBlocks(COMPANIES);
+  fetchNextQuoteNo();
 }
 
 // ── Load Quote ────────────────────────────────────────────────────
