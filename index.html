@@ -320,7 +320,12 @@ function addRow(coid){
     <td class="w-disc"><div class="disc-wrap">
       <input type="text" class="r-dval" placeholder="0" oninput="calcRow('${rid}')">
       <select class="r-dtype" onchange="calcRow('${rid}')">
-        <option value="pct">%</option><option value="sch">+1</option>
+        <option value="pct">%</option>
+        <option value="sch1">+1</option>
+        <option value="sch2">+2</option>
+        <option value="sch3">+3</option>
+        <option value="sch4">+4</option>
+        <option value="sch5">+5</option>
       </select>
     </div></td>
     <td class="w-final"><span class="r-fin">0</span></td>
@@ -451,6 +456,7 @@ function calcRow(rid){
   const amt=size*price*qty;
   let fin=amt;
   if(dtype==='pct') fin=amt*(1-(parseFloat(dval)||0)/100);
+  // sch1-sch5: amount stays same (free pieces absorbed)
   tr.querySelector('.r-amt').textContent=fmt(amt);
   tr.querySelector('.r-fin').textContent=fmt(fin);
   calcSub(tr.dataset.coid);calcGT();
@@ -608,7 +614,9 @@ function restoreRows(rows){
       tr.querySelector('.r-price').value=r.price!==undefined?r.price:'';
       tr.querySelector('.r-qty').value=r.qty!==undefined?r.qty:'';
       tr.querySelector('.r-dval').value=r.dval||'';
-      tr.querySelector('.r-dtype').value=r.dtype||'pct';
+      // Handle old 'sch' value → map to 'sch1'
+      const dtype=r.dtype==='sch'?'sch1':(r.dtype||'pct');
+      tr.querySelector('.r-dtype').value=dtype;
       applyColor(tr,seg);calcRow(rid);
     });
     if(coRows.length===0) addRow(coid);
@@ -670,7 +678,7 @@ function collectByCompany(){
       const qty=parseFloat(tr.querySelector('.r-qty')?.value)||0;
       const dval=tr.querySelector('.r-dval')?.value||'';
       const dtype=tr.querySelector('.r-dtype')?.value;
-      const disc=dtype==='pct'?(dval||'0')+'%':(dval||'0')+'+1';
+      const disc=dtype==='pct'?(dval||'0')+'%':dtype.replace('sch','+')+' Scheme';
       const amt=pfmt(tr.querySelector('.r-amt')?.textContent);
       const fin=pfmt(tr.querySelector('.r-fin')?.textContent);
       rows.push({sr:rows.length+1,seg,prod:prod.toUpperCase(),prodOriginal:prod,size,price,qty,amt,disc,fin,dval,dtype});
