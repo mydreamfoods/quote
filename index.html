@@ -212,7 +212,7 @@ window.onload=()=>{
   document.getElementById('qno').textContent='Q-...';
   buildCompanyBlocks([
     {name:'MY DREAM FOODS LIMITED',segments:[]},
-    {name:'MAYANK FOODS LIMITED',segments:[]}
+    {name:'MAYANK FOOD PRODUCTS',segments:[]}
   ]);
   loadProducts();
   fetchNextQuoteNo();
@@ -652,7 +652,7 @@ function saveQuoteLog(coData,onSuccess,onError){
   const contact=document.getElementById('contact').value.toUpperCase()||'';
   const updBy=document.getElementById('updated-by').value.toUpperCase()||'';
   const mdf=coData.find(c=>c.coname==='MY DREAM FOODS LIMITED');
-  const may=coData.find(c=>c.coname==='MAYANK FOODS LIMITED');
+  const may=coData.find(c=>c.coname==='MAYANK FOOD PRODUCTS');
   const sumQ=r=>r?r.rows.reduce((a,x)=>a+x.qty,0):0;
   const sumA=r=>r?r.rows.reduce((a,x)=>a+x.amt,0):0;
   const sumF=r=>r?r.rows.reduce((a,x)=>a+x.fin,0):0;
@@ -807,7 +807,7 @@ function exportPDF(){
     pageY=doc.lastAutoTable.finalY+2;
   }
   drawPageHeader();
-  const BANK={'MY DREAM FOODS LIMITED':{holder:'MY DREAM FOODS PRIVATE LIMITED',bank:'KOTAK - 5545447136',ac:'5545447136',ifsc:'PALDA INDORE MP & KKBK0005932'},'MAYANK FOODS LIMITED':{holder:'MAYANK FOOD PRODUCTS',bank:'BOI - 880820110000388 C/A',ac:'880820110000388',ifsc:'SNEH NAGAR, INDORE & BKID0008808'}};
+  const BANK={'MY DREAM FOODS LIMITED':{holder:'MY DREAM FOODS LIMITED',bank:'ICICI - 777705903953',ac:'777705903953',ifsc:'PALDA INDORE & ICIC0007604'},'MAYANK FOOD PRODUCTS':{holder:'MAYANK FOOD PRODUCTS',bank:'BOI - 880820110000388 C/A',ac:'880820110000388',ifsc:'SNEH NAGAR, INDORE & BKID0008808'}};
   const pH=doc.internal.pageSize.getHeight();
   coData.forEach(({coname,rows},ci)=>{
     if(ci>0){doc.addPage();pageY=10;}
