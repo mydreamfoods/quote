@@ -16,7 +16,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef0f7;color:#1a1a2e;fo
 .hdr{background:linear-gradient(135deg,#0f3460,#16213e);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .hdr h1{font-size:14px;font-weight:700;letter-spacing:.4px}
 .hdr-sub{font-size:10px;opacity:.6;margin-top:2px}
-.hdr-right{text-align:right;font-size:11px}
+.hdr-right{text-align:right;font-size:11px;white-space:nowrap}
 .hdr-right input[type=date]{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 8px;border-radius:4px;font-size:11px;width:130px}
 .hdr-right input[type=date]::-webkit-calendar-picker-indicator{filter:invert(1)}
 
@@ -43,33 +43,39 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef0f7;color:#1a1a2e;fo
 
 /* COMPANY BLOCK */
 .co-block{margin:0}
-.co-banner{background:#0f3460;color:#fff;padding:7px 16px;display:flex;align-items:center;justify-content:space-between}
-.co-banner h2{font-size:12px;font-weight:700;letter-spacing:.3px}
+.co-banner{background:#0f3460;color:#fff;padding:7px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.co-banner h2{font-size:13px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
 .co-banner .co-sub{font-size:10px;opacity:.65}
 
 /* TABLE WRAPPER — horizontal scroll on mobile */
-.tbl-wrap{padding:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{width:100%;min-width:680px;border-collapse:collapse}
+.tbl-wrap{padding:0 16px 0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;min-width:800px;border-collapse:collapse;table-layout:fixed}
 thead tr{background:#1a2a4a}
-thead th{padding:8px 6px;text-align:center;font-size:11px;font-weight:700;color:#fff;white-space:nowrap}
+thead th{padding:8px 6px;text-align:center;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden}
 thead th.tl{text-align:left}
 tbody tr{border-bottom:1px solid rgba(0,0,0,.055);transition:filter .12s}
-tbody tr:hover{filter:brightness(.93)}
-tbody td{padding:5px 5px;vertical-align:middle;text-align:center}
+tbody td{padding:5px 5px;vertical-align:middle;text-align:center;overflow:hidden}
 tbody td.tl{text-align:left}
 td input,td select{border:1px solid transparent;background:transparent;padding:4px 4px;border-radius:3px;font-size:12px;color:inherit;text-align:center;width:100%;text-transform:uppercase}
 td input[type=number]{text-transform:none}
 td input:focus,td select:focus{outline:none;border-color:rgba(0,0,0,.22);background:rgba(255,255,255,.55)}
 td.tl select,td.tl input{text-align:left}
-.w-sno{width:28px}.w-seg{width:120px}.w-prod{min-width:160px;overflow:visible;position:relative}
-.w-size{width:52px}.w-price{width:62px}.w-qty{width:62px}
-.w-amt{width:80px;font-weight:600}.w-disc{width:86px}
-.w-final{width:84px;font-weight:700}.w-del{width:24px}
+.w-sno{width:32px}
+.w-seg{width:100px}
+.w-prod{width:220px;overflow:visible;position:relative}
+.w-size{width:46px}
+.w-price{width:60px}
+.w-qty{width:56px}
+.w-amt{width:88px;font-weight:600}
+.w-disc{width:88px;white-space:nowrap}
+.w-final{width:88px;font-weight:700}
+.w-del{width:28px}
 .btn-del{background:none;border:none;color:rgba(0,0,0,.2);cursor:pointer;font-size:13px;padding:0 4px}
 .btn-del:hover{color:#e53935}
-.disc-wrap{display:flex;align-items:center;gap:2px;justify-content:center}
-.disc-wrap input{width:44px !important}
-.disc-wrap select{width:40px !important;font-size:11px;padding:3px 2px}
+.w-disc{width:96px;white-space:nowrap}
+.disc-wrap{display:flex;align-items:center;gap:2px;justify-content:center;flex-wrap:nowrap}
+.disc-wrap input{width:32px !important;min-width:32px;flex-shrink:0}
+.disc-wrap select{width:56px !important;min-width:56px;font-size:10px;padding:2px 1px;flex-shrink:0}
 
 /* SEARCHABLE PRODUCT DROPDOWN */
 .pd-wrap{position:relative;width:100%}
@@ -84,7 +90,7 @@ td.tl select,td.tl input{text-align:left}
 .pd-item:hover,.pd-item.pd-hl{background:#e3f0fb;color:#0f3460;font-weight:600}
 .pd-empty{padding:10px 12px;font-size:12px;color:#aaa;font-style:italic}
 
-.sub-row td{background:#e8ebf5;font-weight:700;font-size:11px;padding:6px 8px;border-top:2px solid #b0b8d8}
+.sub-row td{background:#e8ebf5;font-weight:700;font-size:11px;padding:6px 8px;border-top:2px solid #b0b8d8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sub-row .lbl{text-align:right;color:#444;padding-right:6px}
 
 .add-bar{display:none}
@@ -260,32 +266,37 @@ function buildCompanyBlocks(companies){
       </div>
       <div class="tbl-wrap">
         <table>
+          <colgroup>
+            <col style="width:32px"><col style="width:100px"><col style="width:auto">
+            <col style="width:50px"><col style="width:64px"><col style="width:60px">
+            <col style="width:92px"><col style="width:90px"><col style="width:92px"><col style="width:28px">
+          </colgroup>
           <thead><tr>
-            <th class="w-sno">#</th>
-            <th class="tl w-seg">Segment</th>
-            <th class="tl w-prod">Product</th>
-            <th class="w-size">Size</th>
-            <th class="w-price">Price</th>
-            <th class="w-qty">Qty</th>
-            <th class="w-amt">Amount</th>
-            <th class="w-disc">Disc</th>
-            <th class="w-final">Final</th>
-            <th class="w-del"></th>
+            <th>#</th>
+            <th class="tl">Segment</th>
+            <th class="tl">Product</th>
+            <th>Size</th>
+            <th>Price</th>
+            <th>Qty</th>
+            <th>Amount</th>
+            <th>Disc</th>
+            <th>Final</th>
+            <th></th>
           </tr></thead>
           <tbody id="co_${ci}_body"></tbody>
           <tfoot>
             <tr class="sub-row">
               <td colspan="5" class="lbl">Sub-Total</td>
-              <td id="co_${ci}_tqty" style="text-align:center">0</td>
-              <td id="co_${ci}_tamt" style="text-align:right">0</td>
+              <td id="co_${ci}_tqty" style="text-align:center;font-weight:700">0</td>
+              <td id="co_${ci}_tamt" style="text-align:center;font-weight:700">0</td>
               <td></td>
-              <td id="co_${ci}_tfin" style="text-align:right;color:#1a7a3c">0</td>
+              <td id="co_${ci}_tfin" style="text-align:center;font-weight:700;color:#1a7a3c">0</td>
               <td></td>
             </tr>
           </tfoot>
         </table>
       </div>
-      <div class="add-bar"><button class="btn-add" onclick="addRow('co_${ci}')">+ Add Row</button></div>`;
+      <div class="add-bar"></div>`;
     container.appendChild(block);
     addRow('co_'+ci);addRow('co_'+ci);
   });
@@ -469,8 +480,11 @@ function calcSub(coid){
     tf+=pfmt(tr.querySelector('.r-fin')?.textContent);
   });
   document.getElementById(coid+'_tqty').textContent=tq||0;
-  document.getElementById(coid+'_tamt').textContent=fmtR(ta);
-  document.getElementById(coid+'_tfin').textContent=fmtR(tf);
+  document.getElementById(coid+'_tamt').textContent=fmt(ta);
+  document.getElementById(coid+'_tfin').textContent=fmt(tf);
+  document.getElementById(coid+'_tqty').style.textAlign='center';
+  document.getElementById(coid+'_tamt').style.textAlign='center';
+  document.getElementById(coid+'_tfin').style.textAlign='center';
 }
 function calcGT(){
   let gq=0,gg=0,gf=0;
@@ -573,17 +587,22 @@ function restoreRows(rows){
       </div>
       <div class="tbl-wrap">
         <table>
+          <colgroup>
+            <col style="width:32px"><col style="width:100px"><col style="width:auto">
+            <col style="width:50px"><col style="width:64px"><col style="width:60px">
+            <col style="width:92px"><col style="width:90px"><col style="width:92px"><col style="width:28px">
+          </colgroup>
           <thead><tr>
-            <th class="w-sno">#</th><th class="tl w-seg">Segment</th><th class="tl w-prod">Product</th>
-            <th class="w-size">Size</th><th class="w-price">Price</th><th class="w-qty">Qty</th>
-            <th class="w-amt">Amount</th><th class="w-disc">Disc</th><th class="w-final">Final</th><th class="w-del"></th>
+            <th>#</th><th class="tl">Segment</th><th class="tl">Product</th>
+            <th>Size</th><th>Price</th><th>Qty</th>
+            <th>Amount</th><th>Disc</th><th>Final</th><th></th>
           </tr></thead>
           <tbody id="co_${ci}_body"></tbody>
           <tfoot><tr class="sub-row">
             <td colspan="5" class="lbl">Sub-Total</td>
-            <td id="co_${ci}_tqty" style="text-align:center">0</td>
-            <td id="co_${ci}_tamt" style="text-align:right">0</td><td></td>
-            <td id="co_${ci}_tfin" style="text-align:right;color:#1a7a3c">0</td><td></td>
+            <td id="co_${ci}_tqty" style="text-align:center;font-weight:700">0</td>
+            <td id="co_${ci}_tamt" style="text-align:center;font-weight:700">0</td><td></td>
+            <td id="co_${ci}_tfin" style="text-align:center;font-weight:700;color:#1a7a3c">0</td><td></td>
           </tr></tfoot>
         </table>
       </div>
@@ -678,7 +697,7 @@ function collectByCompany(){
       const qty=parseFloat(tr.querySelector('.r-qty')?.value)||0;
       const dval=tr.querySelector('.r-dval')?.value||'';
       const dtype=tr.querySelector('.r-dtype')?.value;
-      const disc=dtype==='pct'?(dval||'0')+'%':dtype.replace('sch','+')+' Scheme';
+      const disc=dtype==='pct'?(dval||'0')+'%':dtype.replace('sch','')+'SCH';
       const amt=pfmt(tr.querySelector('.r-amt')?.textContent);
       const fin=pfmt(tr.querySelector('.r-fin')?.textContent);
       rows.push({sr:rows.length+1,seg,prod:prod.toUpperCase(),prodOriginal:prod,size,price,qty,amt,disc,fin,dval,dtype});
@@ -782,8 +801,8 @@ function exportPDF(){
     doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(255,255,255);
     doc.text('Quotation / Rate List',W/2,8,{align:'center'});
     doc.autoTable({startY:13,body:[['Quote No:',qno,'Date:',date],['Party:',party,'City:',city]],theme:'plain',
-      styles:{font:'helvetica',fontSize:9,cellPadding:{top:2.5,bottom:2.5,left:5,right:5},fillColor:[245,246,252],textColor:[20,20,40],overflow:'ellipsize'},
-      columnStyles:{0:{cellWidth:24,fontStyle:'bold',textColor:[60,60,100]},1:{cellWidth:110,halign:'left'},2:{cellWidth:20,fontStyle:'bold',textColor:[60,60,100]},3:{cellWidth:103,halign:'left'}},
+      styles:{font:'helvetica',fontSize:9,cellPadding:{top:2.5,bottom:2.5,left:4,right:4},fillColor:[245,246,252],textColor:[20,20,40],overflow:'visible',cellWidth:'auto'},
+      columnStyles:{0:{cellWidth:28,fontStyle:'bold',textColor:[60,60,100]},1:{cellWidth:121,halign:'left'},2:{cellWidth:20,fontStyle:'bold',textColor:[60,60,100]},3:{cellWidth:108,halign:'left'}},
       margin:{left:ML,right:MR}});
     pageY=doc.lastAutoTable.finalY+2;
   }
@@ -803,10 +822,15 @@ function exportPDF(){
       theme:'plain',styles:{font:'helvetica',fontSize:8.5,cellPadding:{top:2.5,bottom:2.5,left:3,right:3},overflow:'linebreak'},
       headStyles:{fillColor:[15,52,96],textColor:[255,255,255],fontStyle:'bold',halign:'center',fontSize:9,cellPadding:{top:4,bottom:4,left:3,right:3}},
       footStyles:{fillColor:[220,224,242],textColor:[30,30,60],fontStyle:'bold',fontSize:9},
-      columnStyles:{0:{cellWidth:8,halign:'center'},1:{cellWidth:30,halign:'left'},2:{cellWidth:80,halign:'left'},3:{cellWidth:13,halign:'center'},4:{cellWidth:20,halign:'right'},5:{cellWidth:20,halign:'center'},6:{cellWidth:34,halign:'right'},7:{cellWidth:15,halign:'center'},8:{cellWidth:37,halign:'right'}},
+      columnStyles:{0:{cellWidth:8,halign:'center'},1:{cellWidth:28,halign:'left'},2:{cellWidth:89,halign:'left'},3:{cellWidth:13,halign:'center'},4:{cellWidth:20,halign:'right'},5:{cellWidth:20,halign:'center'},6:{cellWidth:34,halign:'right'},7:{cellWidth:28,halign:'center'},8:{cellWidth:37,halign:'right'}},
       didParseCell(data){
         if(data.section==='body'){const pal=getPdfPal(rows[data.row.index]?.seg);if(pal){const ci=data.column.index;if(ci===6){data.cell.styles.fillColor=pal[1];data.cell.styles.fontStyle='bold';}else if(ci===8){data.cell.styles.fillColor=pal[2];data.cell.styles.fontStyle='bold';data.cell.styles.textColor=[10,60,110];}else data.cell.styles.fillColor=pal[0];}}
-        if(data.section==='foot'){if(data.column.index===4)data.cell.styles.halign='right';if(data.column.index===6||data.column.index===8){data.cell.styles.fontStyle='bold';data.cell.styles.textColor=[15,80,30];}}
+        if(data.section==='foot'){
+          if(data.column.index===4) data.cell.styles.halign='right';
+          if(data.column.index===5) {data.cell.styles.halign='right';data.cell.styles.fontStyle='bold';}
+          if(data.column.index===6) {data.cell.styles.halign='right';data.cell.styles.fontStyle='bold';data.cell.styles.textColor=[15,80,30];}
+          if(data.column.index===8) {data.cell.styles.halign='right';data.cell.styles.fontStyle='bold';data.cell.styles.textColor=[15,80,30];}
+        }
       },margin:{left:ML,right:MR}});
     pageY=doc.lastAutoTable.finalY+2;
     const bk=BANK[coname];
