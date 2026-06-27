@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Quotation / Sales Order</title>
+<title>Quotation</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -50,6 +50,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef0f7;color:#1a1a2e;fo
 /* TABLE WRAPPER — horizontal scroll on mobile */
 .tbl-wrap{padding:0 16px 0;overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;min-width:800px;border-collapse:collapse;table-layout:fixed}
+/* On mobile table scrolls — product gets 180px minimum */
+@media(max-width:600px){
+  table{min-width:760px}
+}
 thead tr{background:#1a2a4a}
 thead th{padding:8px 6px;text-align:center;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden}
 thead th.tl{text-align:left}
@@ -141,7 +145,7 @@ td.tl select,td.tl input{text-align:left}
 
   <div class="hdr">
     <div>
-      <h1>QUOTATION / SALES ORDER / ESTIMATE / RATE LIST</h1>
+      <h1>QUOTATION / RATE LIST</h1>
     </div>
     <div class="hdr-right">
       <div>Quote No: <strong id="qno"></strong></div>
@@ -212,7 +216,7 @@ window.onload=()=>{
   document.getElementById('qno').textContent='Q-...';
   buildCompanyBlocks([
     {name:'MY DREAM FOODS LIMITED',segments:[]},
-    {name:'MAYANK FOOD PRODUCTS',segments:[]}
+    {name:'MAYANK FOODS LIMITED',segments:[]}
   ]);
   loadProducts();
   fetchNextQuoteNo();
@@ -267,7 +271,7 @@ function buildCompanyBlocks(companies){
       <div class="tbl-wrap">
         <table>
           <colgroup>
-            <col style="width:32px"><col style="width:100px"><col style="width:auto">
+            <col style="width:32px"><col style="width:100px"><col style="width:200px">
             <col style="width:50px"><col style="width:64px"><col style="width:60px">
             <col style="width:92px"><col style="width:90px"><col style="width:92px"><col style="width:28px">
           </colgroup>
@@ -588,7 +592,7 @@ function restoreRows(rows){
       <div class="tbl-wrap">
         <table>
           <colgroup>
-            <col style="width:32px"><col style="width:100px"><col style="width:auto">
+            <col style="width:32px"><col style="width:100px"><col style="width:200px">
             <col style="width:50px"><col style="width:64px"><col style="width:60px">
             <col style="width:92px"><col style="width:90px"><col style="width:92px"><col style="width:28px">
           </colgroup>
@@ -652,7 +656,7 @@ function saveQuoteLog(coData,onSuccess,onError){
   const contact=document.getElementById('contact').value.toUpperCase()||'';
   const updBy=document.getElementById('updated-by').value.toUpperCase()||'';
   const mdf=coData.find(c=>c.coname==='MY DREAM FOODS LIMITED');
-  const may=coData.find(c=>c.coname==='MAYANK FOOD PRODUCTS');
+  const may=coData.find(c=>c.coname==='MAYANK FOODS LIMITED');
   const sumQ=r=>r?r.rows.reduce((a,x)=>a+x.qty,0):0;
   const sumA=r=>r?r.rows.reduce((a,x)=>a+x.amt,0):0;
   const sumF=r=>r?r.rows.reduce((a,x)=>a+x.fin,0):0;
@@ -807,7 +811,7 @@ function exportPDF(){
     pageY=doc.lastAutoTable.finalY+2;
   }
   drawPageHeader();
-  const BANK={'MY DREAM FOODS LIMITED':{holder:'MY DREAM FOODS LIMITED',bank:'ICICI - 777705903953',ac:'777705903953',ifsc:'PALDA INDORE & ICIC0007604'},'MAYANK FOOD PRODUCTS':{holder:'MAYANK FOOD PRODUCTS',bank:'BOI - 880820110000388 C/A',ac:'880820110000388',ifsc:'SNEH NAGAR, INDORE & BKID0008808'}};
+  const BANK={'MY DREAM FOODS LIMITED':{holder:'MY DREAM FOODS PRIVATE LIMITED',bank:'KOTAK - 5545447136',ac:'5545447136',ifsc:'PALDA INDORE MP & KKBK0005932'},'MAYANK FOODS LIMITED':{holder:'MAYANK FOOD PRODUCTS',bank:'BOI - 880820110000388 C/A',ac:'880820110000388',ifsc:'SNEH NAGAR, INDORE & BKID0008808'}};
   const pH=doc.internal.pageSize.getHeight();
   coData.forEach(({coname,rows},ci)=>{
     if(ci>0){doc.addPage();pageY=10;}
