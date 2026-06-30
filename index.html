@@ -811,7 +811,7 @@ function exportPDF(){
     pageY=doc.lastAutoTable.finalY+2;
   }
   drawPageHeader();
-  const BANK={'MY DREAM FOODS LIMITED':{holder:'MY DREAM FOODS PRIVATE LIMITED',bank:'KOTAK - 5545447136',ac:'5545447136',ifsc:'PALDA INDORE MP & KKBK0005932'},'MAYANK FOODS LIMITED':{holder:'MAYANK FOOD PRODUCTS',bank:'BOI - 880820110000388 C/A',ac:'880820110000388',ifsc:'SNEH NAGAR, INDORE & BKID0008808'}};
+  const BANK={'MY DREAM FOODS LIMITED':{holder:'MY DREAM FOODS PRIVATE LIMITED',bank:'ICICI BANK - 777705903953',ac:'777705903953',ifsc:'PALDA INDORE & ICIC0007604'},'MAYANK FOODS LIMITED':{holder:'MAYANK FOOD PRODUCTS',bank:'BOI - 880820110000388 C/A',ac:'880820110000388',ifsc:'SNEH NAGAR, INDORE & BKID0008808'}};
   const pH=doc.internal.pageSize.getHeight();
   coData.forEach(({coname,rows},ci)=>{
     if(ci>0){doc.addPage();pageY=10;}
