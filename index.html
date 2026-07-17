@@ -237,10 +237,14 @@ function loadProducts(){
   const st=document.getElementById('status');
   st.className='';st.textContent='Loading…';
   const fd=new FormData();fd.append('action','getProducts');
-  fetch(GAS,{method:'POST',body:fd})
-    .then(r=>r.json())
-    .then(data=>{
-      if(!Array.isArray(data)) throw new Error(data.error||'Bad response');
+  fetch(LOG_GAS,{method:'POST',body:fd})
+    .then(r=>r.text())
+    .then(raw=>{
+      console.log('Products raw response:',raw.substring(0,200));
+      let data;
+      try{data=JSON.parse(raw);}
+      catch(e){st.className='err';st.textContent='✗ Parse error: '+raw.substring(0,80);return;}
+      if(!Array.isArray(data)){st.className='err';st.textContent='✗ Bad response: '+JSON.stringify(data).substring(0,80);return;}
       PRODUCTS=data;
       const coMap={};
       data.forEach(p=>{
@@ -811,7 +815,7 @@ function exportPDF(){
     pageY=doc.lastAutoTable.finalY+2;
   }
   drawPageHeader();
-  const BANK={'MY DREAM FOODS LIMITED':{holder:'MY DREAM FOODS PRIVATE LIMITED',bank:'ICICI BANK - 777705903953',ac:'777705903953',ifsc:'PALDA INDORE & ICIC0007604'},'MAYANK FOODS LIMITED':{holder:'MAYANK FOOD PRODUCTS',bank:'BOI - 880820110000388 C/A',ac:'880820110000388',ifsc:'SNEH NAGAR, INDORE & BKID0008808'}};
+  const BANK={'MY DREAM FOODS LIMITED':{holder:'MY DREAM FOODS PRIVATE LIMITED',bank:'KOTAK - 5545447136',ac:'5545447136',ifsc:'PALDA INDORE MP & KKBK0005932'},'MAYANK FOODS LIMITED':{holder:'MAYANK FOOD PRODUCTS',bank:'BOI - 880820110000388 C/A',ac:'880820110000388',ifsc:'SNEH NAGAR, INDORE & BKID0008808'}};
   const pH=doc.internal.pageSize.getHeight();
   coData.forEach(({coname,rows},ci)=>{
     if(ci>0){doc.addPage();pageY=10;}
