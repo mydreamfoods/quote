@@ -730,7 +730,7 @@ function saveQuoteLog(coData,onSuccess,onError){
   const prods=r=>r?r.rows.map(x=>x.prod).join(', '):'';
   const allRows=coData.flatMap(c=>c.rows);
   const totalQty=allRows.reduce((a,r)=>a+r.qty,0);
-  const grossAmt=allRows.reduce((a,r)=>a+r.amt,0);
+  const grossAmt=allRows.reduce((a,r)=>a+(r.taxable||0),0);
   const finalAmt=allRows.reduce((a,r)=>a+r.fin,0);
   const discount=grossAmt-finalAmt;
   const fd=new FormData();
@@ -777,7 +777,7 @@ function collectByCompany(){
       const preIgst=afterDisc+ins;
       const igst=preIgst*0.05;
       const fin2=Math.round(preIgst+igst);
-      rows.push({sr:rows.length+1,seg,prod:prod.toUpperCase(),prodOriginal:prod,size,price:rate,qty,amt,disc,taxable,igst,ins,fin:fin2,dval,dtype});
+      rows.push({sr:rows.length+1,seg,prod:prod.toUpperCase(),prodOriginal:prod,size,price:rate,qty,amt,disc,taxable:afterDisc,igst,ins,fin:fin2,dval,dtype});
     });
     if(rows.length>0) result.push({coname,rows});
   });
@@ -846,12 +846,16 @@ async function exportExcel(){
     ws.getCell('I'+curR).value=tf;ws.getCell('I'+curR).numFmt='#,##0.00';ws.getCell('I'+curR).font={name:'Arial',size:11,bold:true,color:{argb:'FF1A7A3C'}};ws.getCell('I'+curR).alignment={horizontal:'right',vertical:'middle'};curR++;curR++;
   });
   const allRows=coData.flatMap(c=>c.rows);
-  const gtQ=allRows.reduce((a,r)=>a+r.qty,0),gtA=allRows.reduce((a,r)=>a+r.amt,0),gtF=allRows.reduce((a,r)=>a+r.fin,0);
+  const gtQ=allRows.reduce((a,r)=>a+r.qty,0);
+  const gtXlTax=allRows.reduce((a,r)=>a+(r.taxable||0),0);
+  const gtXlIgst=allRows.reduce((a,r)=>a+(r.igst||0),0);
+  const gtF=allRows.reduce((a,r)=>a+r.fin,0);
   ws.getRow(curR).height=24;ws.mergeCells(`A${curR}:E${curR}`);
   ['A','B','C','D','E','F','G','H','I'].forEach(c=>{const cell=ws.getCell(c+curR);fF(cell,DARK);cell.border={top:{style:'medium',color:{argb:'FF6699CC'}}};cell.font={name:'Arial',size:11,bold:true,color:{argb:WHITE}};cell.alignment={horizontal:'center',vertical:'middle'};});
   ws.getCell('A'+curR).value='GRAND TOTAL';ws.getCell('A'+curR).alignment={horizontal:'right',vertical:'middle'};
   ws.getCell('F'+curR).value=gtQ;
-  ws.getCell('G'+curR).value=gtA;ws.getCell('G'+curR).numFmt='#,##0.00';ws.getCell('G'+curR).alignment={horizontal:'right',vertical:'middle'};
+  ws.getCell('G'+curR).value=gtXlTax;ws.getCell('G'+curR).numFmt='#,##0.00';ws.getCell('G'+curR).alignment={horizontal:'right',vertical:'middle'};
+  ws.getCell('H'+curR).value=gtXlIgst;ws.getCell('H'+curR).numFmt='#,##0.00';
   ws.getCell('I'+curR).value=gtF;ws.getCell('I'+curR).numFmt='#,##0.00';ws.getCell('I'+curR).font={name:'Arial',size:13,bold:true,color:{argb:'FFA8F0C8'}};ws.getCell('I'+curR).alignment={horizontal:'right',vertical:'middle'};
   const buf=await wb.xlsx.writeBuffer();
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -920,11 +924,15 @@ function exportPDF(){
     }
   });
   const allRows=coData.flatMap(c=>c.rows);
-  const gtQ=allRows.reduce((a,r)=>a+r.qty,0),gtA=allRows.reduce((a,r)=>a+r.amt,0),gtD=gtA-allRows.reduce((a,r)=>a+r.fin,0),gtF=allRows.reduce((a,r)=>a+r.fin,0);
+  const gtQ=allRows.reduce((a,r)=>a+r.qty,0);
+  const gtTax=allRows.reduce((a,r)=>a+(r.taxable||0),0);
+  const gtIns=allRows.reduce((a,r)=>a+(r.ins||0),0);
+  const gtIgst=allRows.reduce((a,r)=>a+(r.igst||0),0);
+  const gtF=allRows.reduce((a,r)=>a+r.fin,0);
   if(pageY+18>pH){doc.addPage();pageY=10;}
-  doc.autoTable({startY:pageY,body:[['GRAND TOTAL','Qty: '+gtQ,'Taxable: Rs.'+fmtN(gtA),'IGST 5%: Rs.'+fmtN(gtD),'Final: Rs.'+fmtN(gtF)]],
+  doc.autoTable({startY:pageY,body:[['GRAND TOTAL','Qty: '+gtQ,'Taxable: Rs.'+fmtN(gtTax),'Ins: Rs.'+fmtN(gtIns),'IGST 5%: Rs.'+fmtN(gtIgst),'Final: Rs.'+fmtN(gtF)]],
     theme:'plain',styles:{font:'helvetica',fontSize:10,cellPadding:{top:5,bottom:5,left:6,right:6},fillColor:[15,52,96],fontStyle:'bold',overflow:'visible'},
-    columnStyles:{0:{cellWidth:55,textColor:[255,255,255],halign:'left'},1:{cellWidth:30,textColor:[200,220,255],halign:'left'},2:{cellWidth:65,textColor:[200,220,255],halign:'left'},3:{cellWidth:60,textColor:[200,220,255],halign:'left'},4:{cellWidth:67,textColor:[168,240,200],halign:'left'}},
+    columnStyles:{0:{cellWidth:50,textColor:[255,255,255],halign:'left'},1:{cellWidth:28,textColor:[200,220,255],halign:'left'},2:{cellWidth:60,textColor:[200,220,255],halign:'left'},3:{cellWidth:42,textColor:[200,220,255],halign:'left'},4:{cellWidth:50,textColor:[200,220,255],halign:'left'},5:{cellWidth:47,textColor:[168,240,200],halign:'left'}},
     margin:{left:ML,right:MR}});
   doc.save('Quotation_'+party+'_'+date+'.pdf');
 }
