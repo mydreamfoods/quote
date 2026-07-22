@@ -49,7 +49,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef0f7;color:#1a1a2e;fo
 
 /* TABLE WRAPPER — horizontal scroll on mobile */
 .tbl-wrap{padding:0 16px 0;overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{width:100%;min-width:940px;border-collapse:collapse;table-layout:fixed}
+table{width:100%;min-width:820px;border-collapse:collapse;table-layout:fixed}
 /* On mobile table scrolls — product gets 180px minimum */
 @media(max-width:600px){
   table{min-width:760px}
@@ -64,10 +64,10 @@ td input,td select{border:1px solid transparent;background:transparent;padding:4
 td input[type=number]{text-transform:none}
 td input:focus,td select:focus{outline:none;border-color:rgba(0,0,0,.22);background:rgba(255,255,255,.55)}
 td.tl select,td.tl input{text-align:left}
-.w-sno{width:28px}
+.w-sno{width:30px}
 .w-seg{width:88px}
 .w-prod{width:190px;overflow:visible;position:relative}
-.w-size{width:42px}.w-price{width:56px}.w-qty{width:48px}
+.w-size{width:52px}.w-price{width:70px}.w-qty{width:65px}
 .w-amt{width:68px;font-weight:600}
 .w-taxable{width:68px;font-weight:600}
 .w-igst{width:58px;font-weight:600;color:#b35c00}
@@ -174,7 +174,7 @@ td.tl select,td.tl input{text-align:left}
 
   <div class="gt-bar">
     <div class="gt-item"><div class="gl">Cartons</div><div class="gv" id="gt-qty">0</div></div>
-    <div class="gt-item"><div class="gl">Taxable</div><div class="gv" id="gt-gross">Rs.0</div></div>
+    <div class="gt-item"><div class="gl">Taxable</div><div class="gv" id="gt-taxable">Rs.0</div></div>
     <div class="gt-item"><div class="gl">Insurance</div><div class="gv" id="gt-ins">Rs.0</div></div>
     <div class="gt-item"><div class="gl">IGST 5%</div><div class="gv disc" id="gt-disc">Rs.0</div></div>
     <div class="gt-item"><div class="gl">Final Amount</div><div class="gv fin" id="gt-final">Rs.0</div></div>
@@ -275,36 +275,30 @@ function buildCompanyBlocks(companies){
       <div class="tbl-wrap">
         <table>
           <colgroup>
-            <col style="width:28px"><col style="width:90px"><col style="width:200px">
-            <col style="width:44px"><col style="width:58px"><col style="width:50px">
-            <col style="width:72px"><col style="width:80px">
-            <col style="width:72px"><col style="width:62px"><col style="width:58px">
-            <col style="width:72px"><col style="width:24px">
+            <col style="width:30px"><col style="width:90px"><col style="width:160px">
+            <col style="width:52px"><col style="width:70px"><col style="width:65px">
+            <col style="width:90px"><col style="width:90px">
+            <col style="width:90px"><col style="width:26px">
           </colgroup>
           <thead><tr>
             <th>#</th>
             <th class="tl">Segment</th>
             <th class="tl">Product</th>
             <th>Size</th>
-            <th>Rate<br><small style="font-weight:400;opacity:.75">Incl.Tax</small></th>
+            <th>Rate<br><small style="font-weight:400;opacity:.75">(incl.tax)</small></th>
             <th>Qty</th>
             <th>Amount</th>
             <th>Disc%</th>
-            <th>Taxable</th>
-            <th>IGST<br><small style="font-weight:400;opacity:.75">5%</small></th>
-            <th>Ins<br><small style="font-weight:400;opacity:.75">0.03%</small></th>
             <th>Final</th>
             <th></th>
           </tr></thead>
           <tbody id="co_${ci}_body"></tbody>
           <tfoot>
             <tr class="sub-row">
-              <td colspan="6" class="lbl">Sub-Total</td>
-              <td id="co_${ci}_tamt" style="text-align:center;font-weight:700">0</td>
+              <td colspan="5" class="lbl">Sub-Total</td>
+              <td id="co_${ci}_tqty" style="text-align:center;font-weight:700">0</td>
+              <td id="co_${ci}_ttax" style="text-align:center;font-weight:700;color:#555">0</td>
               <td></td>
-              <td id="co_${ci}_ttax" style="text-align:center;font-weight:700">0</td>
-              <td id="co_${ci}_tigst" style="text-align:center;font-weight:700">0</td>
-              <td id="co_${ci}_tins" style="text-align:center;font-weight:700">0</td>
               <td id="co_${ci}_tfin" style="text-align:center;font-weight:700;color:#1a7a3c">0</td>
               <td></td>
             </tr>
@@ -354,11 +348,11 @@ function addRow(coid){
         <option value="sch5">+5</option>
       </select>
     </div></td>
-    <td class="w-taxable"><span class="r-taxable">0</span></td>
-    <td class="w-igst"><span class="r-igst">0</span></td>
-    <td class="w-ins"><span class="r-ins">0</span></td>
     <td class="w-final"><span class="r-fin">0</span></td>
-    <td class="w-del"><button class="btn-del" onclick="removeRow('${rid}')">✕</button></td>`;
+    <td class="w-del"><button class="btn-del" onclick="removeRow('${rid}')">✕</button></td>
+    <span class="r-taxable" style="display:none">0</span>
+    <span class="r-igst" style="display:none">0</span>
+    <span class="r-ins" style="display:none">0</span>`;
   document.getElementById(coid+'_body').appendChild(tr);
   renum(coid);
 }
@@ -478,61 +472,82 @@ function applyColor(tr,seg){
 function calcRow(rid){
   const tr=document.getElementById(rid);if(!tr)return;
   const size=parseFloat(tr.querySelector('.r-size').value)||0;
-  const priceIncl=parseFloat(tr.querySelector('.r-price').value)||0;
+  const rateInclTax=parseFloat(tr.querySelector('.r-price').value)||0;
   const qty=parseFloat(tr.querySelector('.r-qty').value)||0;
   const dval=tr.querySelector('.r-dval').value.trim();
   const dtype=tr.querySelector('.r-dtype').value;
 
-  // Convert incl. tax rate to excl. tax (taxable rate)
-  // Price incl. tax = Taxable Rate × 1.05 (IGST 5%)
-  const taxableRate=priceIncl/1.05;
-
-  const amt=taxableRate*qty; // Rate per carton × qty           // Amount on taxable rate
-  // Discount only for % type; scheme = free pieces, amount unchanged
+  // Step 1: Rate without tax
+  const rateWoTax=rateInclTax*(100/105);
+  // Step 2: Amount = RateWoTax × Size × Qty
+  const amt=rateWoTax*size*qty;
+  // Step 3: Discount
   const discAmt=dtype==='pct'?amt*(parseFloat(dval)||0)/100:0;
-  const taxable=amt-discAmt;
-  const ins=taxable*0.0003;                 // Insurance 0.03%
-  const igst=(taxable+ins)*0.05;            // IGST 5%
-  const fin=Math.round(taxable+ins+igst);
+  // Step 4: After Discount
+  const afterDisc=amt-discAmt;
+  // Step 5: Insurance = AfterDiscount × 0.03%
+  const ins=afterDisc*0.0003;
+  // Step 6: Final before IGST = AfterDiscount + Insurance
+  const preIgst=afterDisc+ins;
+  // Step 7: IGST = preIgst × 5%
+  const igst=preIgst*0.05;
+  // Step 8: Final Amount = preIgst + IGST
+  const fin=Math.round(preIgst+igst);
 
   tr.querySelector('.r-amt').textContent=fmt(amt);
-  tr.querySelector('.r-taxable').textContent=fmt(taxable);
-  tr.querySelector('.r-igst').textContent=fmt(igst);
-  tr.querySelector('.r-ins').textContent=fmt(ins);
+  const tx=tr.querySelector('.r-taxable');if(tx)tx.textContent=fmt(afterDisc);
+  const ig=tr.querySelector('.r-igst');if(ig)ig.textContent=fmt(igst);
+  const in2=tr.querySelector('.r-ins');if(in2)in2.textContent=fmt(ins);
   tr.querySelector('.r-fin').textContent=fmt(fin);
   calcSub(tr.dataset.coid);calcGT();
 }
 function calcSub(coid){
-  let ta=0,ttax=0,tigst=0,tins=0,tf=0;
+  let tq=0,ta=0,tf=0;
   document.getElementById(coid+'_body').querySelectorAll('tr').forEach(tr=>{
-    ta   +=pfmt(tr.querySelector('.r-amt')?.textContent);
-    ttax +=pfmt(tr.querySelector('.r-taxable')?.textContent);
-    tigst+=pfmt(tr.querySelector('.r-igst')?.textContent);
-    tins +=pfmt(tr.querySelector('.r-ins')?.textContent);
-    tf   +=pfmt(tr.querySelector('.r-fin')?.textContent);
+    tq+=parseFloat(tr.querySelector('.r-qty')?.value)||0;
+    ta+=pfmt(tr.querySelector('.r-amt')?.textContent);
+    tf+=pfmt(tr.querySelector('.r-fin')?.textContent);
   });
-  document.getElementById(coid+'_tamt').textContent=fmt(ta);
-  document.getElementById(coid+'_ttax').textContent=fmt(ttax);
-  document.getElementById(coid+'_tigst').textContent=fmt(tigst);
-  document.getElementById(coid+'_tins').textContent=fmt(tins);
+  const tqEl=document.getElementById(coid+'_tqty');
+  if(tqEl) tqEl.textContent=tq||0;
+  const ttaxEl=document.getElementById(coid+'_ttax');
+  if(ttaxEl){
+    let tbase=0;
+    document.getElementById(coid+'_body').querySelectorAll('.r-taxable').forEach(el=>tbase+=pfmt(el.textContent));
+    ttaxEl.textContent=fmt(tbase);
+  }
   document.getElementById(coid+'_tfin').textContent=fmt(tf);
 }
 function calcGT(){
-  let gq=0,gtax=0,gigst=0,gins=0,gf=0;
+  let gq=0,ga=0,gins=0,gigst=0,gf=0;
   document.querySelectorAll('.co-block').forEach(block=>{
     document.getElementById(block.id+'_body').querySelectorAll('tr').forEach(tr=>{
       gq   +=parseFloat(tr.querySelector('.r-qty')?.value)||0;
-      gtax +=pfmt(tr.querySelector('.r-taxable')?.textContent);
-      gigst+=pfmt(tr.querySelector('.r-igst')?.textContent);
-      gins +=pfmt(tr.querySelector('.r-ins')?.textContent);
+      ga   +=pfmt(tr.querySelector('.r-amt')?.textContent);
+      const ins2=tr.querySelector('.r-ins');gins+=ins2?pfmt(ins2.textContent):0;
+      const ig=tr.querySelector('.r-igst');gigst+=ig?pfmt(ig.textContent):0;
       gf   +=pfmt(tr.querySelector('.r-fin')?.textContent);
     });
   });
+  // Recalculate GT from hidden spans
+  let gtBase=0,gtIns=0,gtIgst=0,gtFin=0;
+  document.querySelectorAll('.co-block').forEach(block=>{
+    document.getElementById(block.id+'_body').querySelectorAll('tr').forEach(tr=>{
+      const tx=tr.querySelector('.r-taxable');
+      const ig=tr.querySelector('.r-igst');
+      const ins3=tr.querySelector('.r-ins');
+      gtBase+=tx?pfmt(tx.textContent):0;
+      gtIgst+=ig?pfmt(ig.textContent):0;
+      gtIns+=ins3?pfmt(ins3.textContent):0;
+      gtFin+=pfmt(tr.querySelector('.r-fin')?.textContent);
+    });
+  });
   document.getElementById('gt-qty').textContent=gq||0;
-  document.getElementById('gt-gross').textContent='Rs.'+fmt(gtax);
-  document.getElementById('gt-ins').textContent='Rs.'+fmt(gins);
-  document.getElementById('gt-disc').textContent='Rs.'+fmt(gigst);
-  document.getElementById('gt-final').textContent='Rs.'+fmt(gf);
+  document.getElementById('gt-gross').textContent='Rs.'+fmt(ga);
+  document.getElementById('gt-taxable').textContent='Rs.'+fmt(gtBase);
+  document.getElementById('gt-ins').textContent='Rs.'+fmt(gtIns);
+  document.getElementById('gt-disc').textContent='Rs.'+fmt(gtIgst);
+  document.getElementById('gt-final').textContent='Rs.'+fmt(gtFin);
 }
 function showExportButtons(){
   ['btn-print','btn-excel','btn-pdf'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
@@ -622,27 +637,21 @@ function restoreRows(rows){
       <div class="tbl-wrap">
         <table>
           <colgroup>
-            <col style="width:28px"><col style="width:88px"><col style="width:190px">
-            <col style="width:42px"><col style="width:56px"><col style="width:48px">
-            <col style="width:68px"><col style="width:80px">
-            <col style="width:68px"><col style="width:58px"><col style="width:52px">
-            <col style="width:72px"><col style="width:24px">
+            <col style="width:30px"><col style="width:90px"><col style="width:160px">
+            <col style="width:52px"><col style="width:70px"><col style="width:65px">
+            <col style="width:90px"><col style="width:90px">
+            <col style="width:90px"><col style="width:26px">
           </colgroup>
           <thead><tr>
             <th>#</th><th class="tl">Segment</th><th class="tl">Product</th>
-            <th>Size</th><th>Rate<br><small style="font-weight:400;opacity:.75">Incl.Tax</small></th><th>Qty</th>
-            <th>Amount</th><th>Disc%</th><th>Taxable</th>
-            <th>IGST<br><small style="font-weight:400;opacity:.75">5%</small></th>
-            <th>Ins<br><small style="font-weight:400;opacity:.75">0.03%</small></th>
-            <th>Final</th><th></th>
+            <th>Size</th><th>Rate<br><small style="font-weight:400;opacity:.75">(incl.tax)</small></th><th>Qty</th>
+            <th>Amount</th><th>Disc%</th><th>Final</th><th></th>
           </tr></thead>
           <tbody id="co_${ci}_body"></tbody>
           <tfoot><tr class="sub-row">
-            <td colspan="6" class="lbl">Sub-Total</td>
-            <td id="co_${ci}_tamt" style="text-align:center;font-weight:700">0</td><td></td>
-            <td id="co_${ci}_ttax" style="text-align:center;font-weight:700">0</td>
-            <td id="co_${ci}_tigst" style="text-align:center;font-weight:700">0</td>
-            <td id="co_${ci}_tins" style="text-align:center;font-weight:700">0</td>
+            <td colspan="5" class="lbl">Sub-Total</td>
+            <td id="co_${ci}_tqty" style="text-align:center;font-weight:700">0</td>
+            <td id="co_${ci}_ttax" style="text-align:center;font-weight:700;color:#555">0</td><td></td>
             <td id="co_${ci}_tfin" style="text-align:center;font-weight:700;color:#1a7a3c">0</td><td></td>
           </tr></tfoot>
         </table>
@@ -734,19 +743,20 @@ function collectByCompany(){
       const prod=tr.querySelector('.r-prod')?.value;if(!prod)return;
       const seg=(tr.querySelector('.r-seg')?.value||'').trim();
       const size=parseFloat(tr.querySelector('.r-size')?.value)||0;
-      const priceIncl=parseFloat(tr.querySelector('.r-price')?.value)||0;
+      const rate=parseFloat(tr.querySelector('.r-price')?.value)||0;
       const qty=parseFloat(tr.querySelector('.r-qty')?.value)||0;
       const dval=tr.querySelector('.r-dval')?.value||'';
       const dtype=tr.querySelector('.r-dtype')?.value;
       const disc=dtype==='pct'?(dval||'0')+'%':dtype.replace('sch','')+'SCH';
-      const taxableRate=priceIncl/1.05;
-      const amt=taxableRate*qty; // Rate per carton × qty
+      const rateWoTax=rate*(100/105);
+      const amt=rateWoTax*size*qty;
       const discAmt=dtype==='pct'?amt*(parseFloat(dval)||0)/100:0;
-      const taxable=amt-discAmt;
-      const ins=taxable*0.0003;
-      const igst=(taxable+ins)*0.05;
-      const fin2=Math.round(taxable+ins+igst);
-      rows.push({sr:rows.length+1,seg,prod:prod.toUpperCase(),prodOriginal:prod,size,price:priceIncl,qty,amt,disc,taxable,igst,ins,fin:fin2,dval,dtype});
+      const afterDisc=amt-discAmt;
+      const ins=afterDisc*0.0003;
+      const preIgst=afterDisc+ins;
+      const igst=preIgst*0.05;
+      const fin2=Math.round(preIgst+igst);
+      rows.push({sr:rows.length+1,seg,prod:prod.toUpperCase(),prodOriginal:prod,size,price:rate,qty,amt,disc,taxable,igst,ins,fin:fin2,dval,dtype});
     });
     if(rows.length>0) result.push({coname,rows});
   });
@@ -862,7 +872,7 @@ function exportPDF(){
     doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(255,255,255);
     doc.text(coname,W/2,pageY+6.2,{align:'center'});pageY+=10;
     doc.autoTable({startY:pageY,
-      head:[['#','Segment','Product','Size','Rate (Incl.Tax)','Qty','Amount','Disc%','Taxable','IGST 5%','Ins 0.03%','Final']],
+      head:[['#','Segment','Product','Size','Rate(incl.tax)','Qty','Amount','Disc%','Taxable','IGST 5%','Ins 0.03%','Final']],
       body:rows.map(r=>[r.sr,r.seg,r.prod,r.size,fmtN(r.price),r.qty,fmtN(r.amt),r.disc,fmtN(r.taxable),fmtN(r.igst),fmtN(r.ins),fmtN(r.fin)]),
       foot:[['','','','','Sub-Total',rows.reduce((a,r)=>a+r.qty,0),fmtN(rows.reduce((a,r)=>a+r.amt,0)),'',fmtN(rows.reduce((a,r)=>a+r.taxable,0)),fmtN(rows.reduce((a,r)=>a+r.igst,0)),fmtN(rows.reduce((a,r)=>a+r.ins,0)),fmtN(rows.reduce((a,r)=>a+r.fin,0))]],
       theme:'plain',styles:{font:'helvetica',fontSize:8.5,cellPadding:{top:2.5,bottom:2.5,left:3,right:3},overflow:'linebreak'},
