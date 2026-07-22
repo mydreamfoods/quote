@@ -237,25 +237,45 @@ function loadProducts(){
   const st=document.getElementById('status');
   st.className='';st.textContent='Loading…';
   const fd=new FormData();fd.append('action','getProducts');
+
+  function parseProducts(raw){
+    let data;
+    try{data=JSON.parse(raw);}catch(e){return null;}
+    if(!Array.isArray(data)) return null;
+    return data;
+  }
+
+  function applyProducts(data){
+    PRODUCTS=data;
+    const coMap={};
+    data.forEach(p=>{
+      const co=p.company||'OTHER';
+      if(!coMap[co]) coMap[co]={name:co,segments:[]};
+      if(!coMap[co].segments.includes(p.segment)) coMap[co].segments.push(p.segment);
+    });
+    COMPANIES=Object.values(coMap);
+    st.className='ok';
+    st.textContent='✓ '+data.length+' products · '+COMPANIES.length+' companies';
+    buildCompanyBlocks(COMPANIES);
+  }
+
+  // Try LOG_GAS first, fallback to GAS
   fetch(LOG_GAS,{method:'POST',body:fd})
     .then(r=>r.text())
     .then(raw=>{
-      console.log('Products raw response:',raw.substring(0,200));
-      let data;
-      try{data=JSON.parse(raw);}
-      catch(e){st.className='err';st.textContent='✗ Parse error: '+raw.substring(0,80);return;}
-      if(!Array.isArray(data)){st.className='err';st.textContent='✗ Bad response: '+JSON.stringify(data).substring(0,80);return;}
-      PRODUCTS=data;
-      const coMap={};
-      data.forEach(p=>{
-        const co=p.company||'OTHER';
-        if(!coMap[co]) coMap[co]={name:co,segments:[]};
-        if(!coMap[co].segments.includes(p.segment)) coMap[co].segments.push(p.segment);
-      });
-      COMPANIES=Object.values(coMap);
-      st.className='ok';
-      st.textContent='✓ '+data.length+' products · '+COMPANIES.length+' companies';
-      buildCompanyBlocks(COMPANIES);
+      console.log('Products raw:',raw.substring(0,100));
+      const data=parseProducts(raw);
+      if(data){applyProducts(data);return;}
+      // fallback to original GAS
+      console.log('Falling back to GAS for products');
+      const fd2=new FormData();fd2.append('action','getProducts');
+      return fetch(GAS,{method:'POST',body:fd2})
+        .then(r=>r.text())
+        .then(raw2=>{
+          const data2=parseProducts(raw2);
+          if(data2){applyProducts(data2);}
+          else{st.className='err';st.textContent='✗ Could not load products: '+raw2.substring(0,60);}
+        });
     })
     .catch(err=>{st.className='err';st.textContent='✗ '+err.message;});
 }
@@ -349,10 +369,11 @@ function addRow(coid){
       </select>
     </div></td>
     <td class="w-final"><span class="r-fin">0</span></td>
-    <td class="w-del"><button class="btn-del" onclick="removeRow('${rid}')">✕</button></td>
-    <span class="r-taxable" style="display:none">0</span>
-    <span class="r-igst" style="display:none">0</span>
-    <span class="r-ins" style="display:none">0</span>`;
+    <td class="w-del"><button class="btn-del" onclick="removeRow('${rid}')">✕</button>
+      <span class="r-taxable" style="display:none">0</span>
+      <span class="r-igst" style="display:none">0</span>
+      <span class="r-ins" style="display:none">0</span>
+    </td>`;
   document.getElementById(coid+'_body').appendChild(tr);
   renum(coid);
 }
@@ -497,7 +518,7 @@ function calcRow(rid){
   tr.querySelector('.r-amt').textContent=fmt(amt);
   const tx=tr.querySelector('.r-taxable');if(tx)tx.textContent=fmt(afterDisc);
   const ig=tr.querySelector('.r-igst');if(ig)ig.textContent=fmt(igst);
-  const in2=tr.querySelector('.r-ins');if(in2)in2.textContent=fmt(ins);
+  const insEl=tr.querySelector('.r-ins');if(insEl)insEl.textContent=fmt(ins);
   tr.querySelector('.r-fin').textContent=fmt(fin);
   calcSub(tr.dataset.coid);calcGT();
 }
@@ -516,7 +537,8 @@ function calcSub(coid){
     document.getElementById(coid+'_body').querySelectorAll('.r-taxable').forEach(el=>tbase+=pfmt(el.textContent));
     ttaxEl.textContent=fmt(tbase);
   }
-  document.getElementById(coid+'_tfin').textContent=fmt(tf);
+  const tfinEl=document.getElementById(coid+'_tfin');
+  if(tfinEl) tfinEl.textContent=fmt(tf);
 }
 function calcGT(){
   let gq=0,ga=0,gins=0,gigst=0,gf=0;
@@ -542,12 +564,11 @@ function calcGT(){
       gtFin+=pfmt(tr.querySelector('.r-fin')?.textContent);
     });
   });
-  document.getElementById('gt-qty').textContent=gq||0;
-  document.getElementById('gt-gross').textContent='Rs.'+fmt(ga);
-  document.getElementById('gt-taxable').textContent='Rs.'+fmt(gtBase);
-  document.getElementById('gt-ins').textContent='Rs.'+fmt(gtIns);
-  document.getElementById('gt-disc').textContent='Rs.'+fmt(gtIgst);
-  document.getElementById('gt-final').textContent='Rs.'+fmt(gtFin);
+  const gtQtyEl=document.getElementById('gt-qty');if(gtQtyEl)gtQtyEl.textContent=gq||0;
+  const gtTaxEl=document.getElementById('gt-taxable');if(gtTaxEl)gtTaxEl.textContent='Rs.'+fmt(gtBase);
+  const gtInsEl=document.getElementById('gt-ins');if(gtInsEl)gtInsEl.textContent='Rs.'+fmt(gtIns);
+  const gtDiscEl=document.getElementById('gt-disc');if(gtDiscEl)gtDiscEl.textContent='Rs.'+fmt(gtIgst);
+  const gtFinEl=document.getElementById('gt-final');if(gtFinEl)gtFinEl.textContent='Rs.'+fmt(gtFin);
 }
 function showExportButtons(){
   ['btn-print','btn-excel','btn-pdf'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
