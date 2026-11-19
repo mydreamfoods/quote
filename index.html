@@ -170,6 +170,14 @@ td.tl select,td.tl input{text-align:left}
     <span id="status" style="font-size:11px;color:#888">Loading products…</span>
   </div>
 
+  <!-- PASTE DATA BAR -->
+  <div class="loadbar" style="background:#fffaf0;border-bottom:1px solid #f0e0c0;align-items:flex-start">
+    <label style="font-size:11px;font-weight:600;color:#555;white-space:nowrap;padding-top:6px">Paste Data:</label>
+    <textarea id="paste-data" rows="2" placeholder="Paste rows copied from sheet (Party, Company, Segment, Product, Unit, Qty, Rate, Disc Type, Discount, Amount)" style="flex:1;min-width:180px;border:1px solid #e0cfa8;border-radius:4px;padding:6px 8px;font-size:12px;font-family:inherit;resize:vertical" onpaste="setTimeout(fillFromPaste,60)"></textarea>
+    <button class="btn" onclick="fillFromPaste()" style="background:#e65100;color:#fff">Fill Form</button>
+    <span id="paste-status" style="font-size:11px;color:#888;width:100%;flex-basis:100%"></span>
+  </div>
+
   <div id="co-container"></div>
 
   <div class="gt-bar">
@@ -888,7 +896,7 @@ function exportPDF(){
     pageY=doc.lastAutoTable.finalY+2;
   }
   drawPageHeader();
-  const BANK={'MY DREAM FOODS LIMITED':{holder:'MY DREAM FOODS PRIVATE LIMITED',bank:'ICICI BANK - 777705903953',ac:'777705903953',ifsc:'PALDA INDORE & ICIC0007604'},'MAYANK FOODS LIMITED':{holder:'MAYANK FOOD PRODUCTS',bank:'BOI - 880820110000388 C/A',ac:'880820110000388',ifsc:'SNEH NAGAR, INDORE & BKID0008808'}};
+  const BANK={'MY DREAM FOODS LIMITED':{holder:'MY DREAM FOODS PRIVATE LIMITED',bank:'KOTAK - 5545447136',ac:'5545447136',ifsc:'PALDA INDORE MP & KKBK0005932'},'MAYANK FOODS LIMITED':{holder:'MAYANK FOOD PRODUCTS',bank:'BOI - 880820110000388 C/A',ac:'880820110000388',ifsc:'SNEH NAGAR, INDORE & BKID0008808'}};
   const pH=doc.internal.pageSize.getHeight();
   coData.forEach(({coname,rows},ci)=>{
     if(ci>0){doc.addPage();pageY=10;}
@@ -935,6 +943,80 @@ function exportPDF(){
     columnStyles:{0:{cellWidth:50,textColor:[255,255,255],halign:'left'},1:{cellWidth:28,textColor:[200,220,255],halign:'left'},2:{cellWidth:60,textColor:[200,220,255],halign:'left'},3:{cellWidth:42,textColor:[200,220,255],halign:'left'},4:{cellWidth:50,textColor:[200,220,255],halign:'left'},5:{cellWidth:47,textColor:[168,240,200],halign:'left'}},
     margin:{left:ML,right:MR}});
   doc.save('Quotation_'+party+'_'+date+'.pdf');
+}
+
+// ── Paste data → fill form ────────────────────────────────────────
+function normTok(s){
+  return String(s||'').toLowerCase()
+    .replace(/([a-z])(\d)/g,'$1 $2').replace(/(\d)([a-z])/g,'$1 $2')
+    .replace(/[^a-z0-9]+/g,' ').trim().split(' ')
+    .filter(t=>t&&t!=='rs'&&t!=='pcs'&&t!=='x');
+}
+function normKey(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
+function findProduct(coname,name){
+  const q=new Set(normTok(name));
+  let best=null,bs=0;
+  PRODUCTS.filter(p=>p.company===coname).forEach(p=>{
+    const t=new Set(normTok(p.product));
+    let inter=0;q.forEach(x=>{if(t.has(x))inter++;});
+    const uni=q.size+t.size-inter;
+    const sc=uni?inter/uni:0;
+    if(sc>bs){bs=sc;best=p;}
+  });
+  return bs>=0.5?best:null;
+}
+function fillFromPaste(){
+  const ta=document.getElementById('paste-data');
+  const st=document.getElementById('paste-status');
+  const text=(ta.value||'').trim();
+  if(!text) return;
+  if(!COMPANIES.length){st.style.color='#c62828';st.textContent='Products not loaded yet. Try again.';return;}
+  const rows=[];let partyFull='',skipped=0;const unmatched=[];
+  text.split(/\r?\n/).forEach(line=>{
+    if(!line.trim()) return;
+    const c=line.split('\t').map(x=>x.trim());
+    if(/^party$/i.test(c[0])&&/company/i.test(c[1]||'')) return; // header
+    if(c.length<8){skipped++;return;}
+    const [party,company,segment,product,unit,qtyS,rateS,dt,discS,amtS]=c;
+    const co=COMPANIES.find(x=>normKey(x.name)===normKey(company))
+          ||COMPANIES.find(x=>normKey(x.name).includes(normKey(company))||normKey(company).includes(normKey(x.name)));
+    if(!co){skipped++;return;}
+    if(!partyFull) partyFull=party;
+    const qty=parseFloat(qtyS)||0;
+    const rate=parseFloat(rateS)||0;
+    const disc=parseFloat(discS)||0;
+    const amt=parseFloat(String(amtS||'').replace(/,/g,''))||0;
+    let dtype='pct',dval=String(disc||'');
+    if(dt&&!/%/.test(dt)){
+      const m=dt.match(/([1-5])/);
+      dtype=m?'sch'+m[1]:'pct';
+      if(m) dval='';
+    }
+    const factor=dtype==='pct'?(1-disc/100):1;
+    const match=findProduct(co.name,product);
+    // Size from Amount: Amount = Rate x Size x Qty x (1 - disc)
+    let size=0;
+    if(rate&&qty&&amt){
+      const d=amt/(rate*qty*factor);
+      if(isFinite(d)&&d>0&&Math.abs(d-Math.round(d))<0.05) size=Math.round(d);
+    }
+    if(!size&&match) size=match.size||0;
+    if(!match) unmatched.push(product);
+    const seg=match?match.segment:((co.segments.find(x=>x.toLowerCase()===String(segment).toLowerCase()))||segment);
+    rows.push({coname:co.name,seg,prod:match?match.product:product,size,price:rate,qty,dval,dtype});
+  });
+  if(!rows.length){st.style.color='#c62828';st.textContent='No valid rows found. Copy rows from sheet (tab separated).';return;}
+  // Party / City: "Party Name, City"
+  const i=partyFull.lastIndexOf(',');
+  document.getElementById('party').value=(i>0?partyFull.slice(0,i):partyFull).trim();
+  document.getElementById('city').value=i>0?partyFull.slice(i+1).trim():'';
+  restoreRows(rows);
+  ta.value='';
+  let msg='✓ '+rows.length+' rows filled. Enter Contact & Updated By, then Save.';
+  if(unmatched.length) msg+=' Not matched in Products sheet (kept as pasted): '+unmatched.join(' | ');
+  if(skipped) msg+=' Skipped '+skipped+' line(s).';
+  st.style.color=unmatched.length?'#e65100':'#1a7a3c';
+  st.textContent=msg;
 }
 
 function fmt(n){if(!n||isNaN(n))return '0';return Math.round(n).toLocaleString('en-IN');}
