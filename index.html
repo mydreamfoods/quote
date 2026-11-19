@@ -1020,7 +1020,7 @@ function fillFromPaste(){
 }
 
 function fmt(n){if(!n||isNaN(n))return '0';return Math.round(n).toLocaleString('en-IN');}
-function fmtN(n){if(!n||isNaN(n))return '0';return Math.round(n).toLocaleString('en-IN');}
+function fmtN(n){if(!n||isNaN(n))return '0.00';return Number(n.toFixed(2)).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtR(n){return 'Rs.'+fmt(n);}
 function pfmt(s){return parseFloat((s||'').replace('Rs.','').replace(/,/g,''))||0;}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
